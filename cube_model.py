@@ -1,11 +1,17 @@
-class cube:
+from copy import deepcopy
+
+
+class Cube:
     def __init__(self, dim: int):
         self.dim = dim
         colors = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
         def colors(color):
             c = color
-            return [['1'+f'{c}', '2'+f'{c}', '3'+f'{c}'], ['4'+f'{c}', '5'+f'{c}', '6'+f'{c}'], ['7'+f'{c}', '8'+f'{c}', '9'+f'{c}']]
-        #colors = [['1'+f'{c}', '2'+f'{c}', '3'+f'{c}'], ['4'+f'{c}', '5'+f'{c}', '6'+f'{c}'], ['7'+f'{c}', '8'+f'{c}', '9'+f'{c}']]
+            return [['1' + f'{c}', '2' + f'{c}', '3' + f'{c}'], ['4' + f'{c}', '5' + f'{c}', '6' + f'{c}'],
+                    ['7' + f'{c}', '8' + f'{c}', '9' + f'{c}']]
+
+        # colors = [['1'+f'{c}', '2'+f'{c}', '3'+f'{c}'], ['4'+f'{c}', '5'+f'{c}', '6'+f'{c}'], ['7'+f'{c}', '8'+f'{c}', '9'+f'{c}']]
 
         self.R_colors = colors('R')
         self.L_colors = colors('L')
@@ -22,18 +28,20 @@ class cube:
         self.F_colors = [['r' for _ in range(self.dim)] for _ in range(self.dim)]  # F - front face of the cube
         self.B_colors = [['o' for _ in range(self.dim)] for _ in range(self.dim)]  # B - back face of the cube
         """
-    def show_cube(self):
+
+    def __repr__(self) -> str:
+        return f'''       {' '.join(map(str, self.U_colors))}'''
         for i in self.U_colors:
-            print('  '*3, '', *i, ' '*3)
+            print('  ' * 3, '', *i, ' ' * 3)
         print()
         for i in range(3):
-            print(*self.L_colors[i], ' ' ,*self.F_colors[i], ' ',*self.R_colors[i])
+            print(*self.L_colors[i], ' ', *self.F_colors[i], ' ', *self.R_colors[i])
         print()
         for i in self.D_colors:
-            print('  '*3, '', *i, ' '*3)
+            print('  ' * 3, '', *i, ' ' * 3)
         print()
         for i in self.B_colors:
-            print('  '*3, '', *i, ' '*3)
+            print('  ' * 3, '', *i, ' ' * 3)
 
     def rotate_R(self):
         matrixU = [self.U_colors[i][2] for i in range(3)]
@@ -54,13 +62,10 @@ class cube:
         self.L_colors = [[self.L_colors[self.dim - j - 1][i] for j in range(self.dim)] for i in range(self.dim)]
 
     def rotate_U(self):
-        matrixL = [self.L_colors[0][i] for i in range(3)]
+        matrixL = deepcopy(self.L_colors[0])
         for i in range(3):
             self.L_colors[0][i] = self.F_colors[0][i]
             self.F_colors[0][i] = self.R_colors[0][i]
-            self.R_colors[0][i] = self.B_colors[2][self.dim-i-1]
-            self.B_colors[2][self.dim-i-1] = matrixL[i]
+            self.R_colors[0][i] = self.B_colors[2][self.dim - i - 1]
+            self.B_colors[2][self.dim - i - 1] = matrixL[i]
         self.U_colors = [[self.U_colors[self.dim - j - 1][i] for j in range(self.dim)] for i in range(self.dim)]
-c = cube(3)
-c.rotate_U()
-c.show_cube()
