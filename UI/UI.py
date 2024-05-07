@@ -1,8 +1,6 @@
 from ursina import *
-import time
 
-#from CubeModel import CubeModel
-from cube_model import CubeModel
+from cube_model import Cube
 
 
 def create_sensor(name, pos, scale):
@@ -100,8 +98,8 @@ class Algorithms:
 
 class RubiksCube:
     def __init__(self, cube_model='custom_cube', rubik_texture='rubik_texture'):
-        self.cube_instance = CubeModel(3) # сменила CubeModel на Cube
-        self.cube_solved = CubeModel(3)
+        self.cube_instance = Cube(3)
+        self.cube_solved = Cube(3)
         self.model = cube_model
         self.texture = rubik_texture
         
