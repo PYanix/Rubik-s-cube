@@ -25,6 +25,7 @@ class Algorithms:
         cube_model.rotate_R_streak()
         cube_ui.rotate_side('UP', True)
         cube_model.rotate_U_streak()
+
     def pif_paf_left(self, cube_model, cube_ui):  # левый пифпаф
         cube_model.rotate_L_streak()
         cube_ui.rotate_side('LEFT', True)
@@ -34,16 +35,18 @@ class Algorithms:
         cube_ui.rotate_side('LEFT', False)
         cube_model.rotate_U()
         cube_ui.rotate_side('UP', False)
-    def F1L(self, cube_model, cube_ui, cube_solved): # сборка первого слоя
+
+    def F1L(self, cube_model, cube_ui, cube_solved):  # сборка первого слоя
         z0 = -1
         x0, y0 = 1, 1
         for _ in range(4):
             colors = cube_model.get_colors(x0, y0, z0)
             solved_colors = cube_solved.get_colors(x0, y0, z0)
 
-            if set(colors.values()) == set(solved_colors.values()): # кубик стоит на месте, но цвета необходимо перевернуть
-                    while cube_model.get_colors(x0, y0, z0) != solved_colors:
-                        self.pif_paf_right(cube_model, cube_ui)
+            if set(colors.values()) == set(
+                    solved_colors.values()):  # кубик стоит на месте, но цвета необходимо перевернуть
+                while cube_model.get_colors(x0, y0, z0) != solved_colors:
+                    self.pif_paf_right(cube_model, cube_ui)
             elif set(colors.values()) != set(solved_colors.values()):
 
                 # найти нужный кубик:
@@ -95,14 +98,13 @@ class Algorithms:
             cube_solved.rotate_cube_U()
 
 
-
 class RubiksCube:
     def __init__(self, cube_model='custom_cube', rubik_texture='rubik_texture'):
         self.cube_instance = Cube(3)
         self.cube_solved = Cube(3)
         self.model = cube_model
         self.texture = rubik_texture
-        
+
         self.LEFT = {Vec3(-1, y, z) for y in range(-1, 2) for z in range(-1, 2)}
         self.RIGHT = {Vec3(1, y, z) for y in range(-1, 2) for z in range(-1, 2)}
         self.UP = {Vec3(x, 1, z) for x in range(-1, 2) for z in range(-1, 2)}
@@ -200,7 +202,6 @@ class RubiksCube:
 
         invoke(self.change_animation_flag, delay=self.animation_time + 0.05)
 
-
     def rotate_cube(self, side_name, streak):
         if not self.action_flag:
             self.action_queue.append((side_name, streak, 'cube'))
@@ -263,43 +264,15 @@ class RubiksCube:
                 self.rotate_cube(next_action[0], next_action[1])
 
 
-class Game(Ursina):
-    def __init__(self):
+class InputHandler(Entity):
+    KEYS = ['r', 'l', 'd', 'u', 'f', 'b', 't', 'i', ';', 'g', 's', 'n', 'y']
+
+    def __init__(self, cube: RubiksCube):
         super().__init__()
-        window.fullscreen = True
-
-        EditorCamera(rotation=(30, -20, 0))
-
-        Entity(model='sphere', scale=1000, texture='background_grey', double_sided=True)
-
-        self.model, self.texture = 'custom_cube', 'rubik_texture'
-
-        self.LEFT_sensor = create_sensor(name='LEFT', pos=(-0.99, 0, 0), scale=(1, 3, 3))
-        self.FACE_sensor = create_sensor(name='FACE', pos=(0, 0, -0.99), scale=(3, 3, 1))
-        self.BACK_sensor = create_sensor(name='BACK', pos=(0, 0, 0.99), scale=(3, 3, 1))
-        self.RIGHT_sensor = create_sensor(name='RIGHT', pos=(0.99, 0, 0), scale=(1, 3, 3))
-        self.UP_sensor = create_sensor(name='UP', pos=(0, 0.99, 0), scale=(3, 1, 3))
-        self.DOWN_sensor = create_sensor(name='DOWN', pos=(0, -0.99, 0), scale=(3, 1, 3))
-
-        self.cube = RubiksCube()
-
-        self.solve_button = Button(text='Собрать кубик', color=color.azure, position=(0, 0.4), scale=(0.5, 0.1))
-        self.solve_button.on_click = self.solve_cube
-
-        self.mode_button = Button(text='Сменить режим', color=color.azure, position=(0, -0.4), scale=(0.5, 0.1))
-        self.mode_button.on_click = self.cube.change_game_mode
-
-        # управление
-        #self.R_button = Button(text='R', color=color.azure, position=(0.4, 0.4), scale=(0.1, 0.1))
-        #self.R_button.on_click = self.cube.rotate_side('RIGHT')
-
-    def solve_cube(self):
-
-        a = Algorithms()
-        a.pif_paf_right(cube_model=self.cube.cube_instance, cube_ui=self.cube)#, cube_solved=self.cube.cube_solved)
+        self.cube = cube
 
     def input(self, key):
-        if key in ['r', 'l', 'd', 'u', 'f', 'b', 't', 'i', ';', 'g', 's', 'n', 'y'] and self.cube.action_mode and self.cube.action_flag:
+        if key in self.KEYS and self.cube.action_mode and self.cube.action_flag:
             for info in mouse.collisions:
                 side_name = info.entity.name
                 if key == 'mouse1' and side_name in 'LEFT RIGHT FACE BACK':
@@ -335,7 +308,43 @@ class Game(Ursina):
                 elif key == 'y':
                     self.cube.rotate_cube('UP', False)
 
-        super().input(key)
+
+class Game:
+    def __init__(self):
+        self.app = Ursina()
+
+        window.fullscreen = True
+        EditorCamera(rotation=(30, -20, 0))
+
+        Entity(model='sphere', scale=1000, texture='background_grey', double_sided=True)
+        self.model, self.texture = 'custom_cube', 'rubik_texture'
+
+        self.LEFT_sensor = create_sensor(name='LEFT', pos=(-0.99, 0, 0), scale=(1, 3, 3))
+        self.FACE_sensor = create_sensor(name='FACE', pos=(0, 0, -0.99), scale=(3, 3, 1))
+        self.BACK_sensor = create_sensor(name='BACK', pos=(0, 0, 0.99), scale=(3, 3, 1))
+        self.RIGHT_sensor = create_sensor(name='RIGHT', pos=(0.99, 0, 0), scale=(1, 3, 3))
+        self.UP_sensor = create_sensor(name='UP', pos=(0, 0.99, 0), scale=(3, 1, 3))
+        self.DOWN_sensor = create_sensor(name='DOWN', pos=(0, -0.99, 0), scale=(3, 1, 3))
+
+        self.cube = RubiksCube()
+        self.input_handler = InputHandler(self.cube)
+
+        self.solve_button = Button(text='Собрать кубик', color=color.azure, position=(0, 0.4), scale=(0.5, 0.1))
+        self.solve_button.on_click = self.solve_cube
+
+        self.mode_button = Button(text='Сменить режим', color=color.azure, position=(0, -0.4), scale=(0.5, 0.1))
+        self.mode_button.on_click = self.cube.change_game_mode
+
+        # управление
+        self.R_button = Button(text='R', color=color.azure, position=(0.4, 0.4), scale=(0.1, 0.1))
+        self.R_button.on_click = lambda: self.cube.rotate_side('RIGHT', False)
+
+    def solve_cube(self):
+        a = Algorithms()
+        a.pif_paf_right(cube_model=self.cube.cube_instance, cube_ui=self.cube)  # , cube_solved=self.cube.cube_solved)
+
+    def run(self):
+        self.app.run()
 
 
 if __name__ == '__main__':
