@@ -99,6 +99,40 @@ class Cube:
     def rotate_F_streak(self):
         for _ in range(3):
             self.rotate_F()
+
+    def rotate_B(self):
+        matrixR = deepcopy(self.R_colors)
+        matrixL = deepcopy(self.L_colors)
+        matrixU = deepcopy(self.U_colors)
+        matrixD = deepcopy(self.D_colors)
+        for i in range(3):
+            self.L_colors[2-i][0] = matrixU[0][i]
+            self.D_colors[2][i] = matrixL[i][0]
+            self.R_colors[2-i][2] = matrixD[2][i]
+            self.U_colors[0][i] = matrixR[i][2]
+        self.B_colors = [[self.B_colors[self.dim - j - 1][i] for j in range(self.dim)] for i in range(self.dim)]
+
+
+    def rotate_B_streak(self):
+        for _ in range(3):
+            self.rotate_B()
+
+    def rotate_D(self):
+        matrixR = deepcopy(self.R_colors)
+        matrixL = deepcopy(self.L_colors)
+        matrixF = deepcopy(self.F_colors)
+        matrixB = deepcopy(self.B_colors)
+        for i in range(3):
+            self.R_colors[2][i] = matrixF[2][i]
+            self.F_colors[2][i] = matrixL[2][i]
+            self.L_colors[2][2-i] = matrixB[0][i]
+            self.B_colors[0][2-i] = matrixR[2][i]
+        self.D_colors = [[self.D_colors[self.dim - j - 1][i] for j in range(self.dim)] for i in range(self.dim)]
+
+    def rotate_D_streak(self):
+        for _ in range(3):
+            self.rotate_D()
+
     def rotate_cube_U(self):
         matrixR = deepcopy(self.R_colors)
         matrixL = deepcopy(self.L_colors)
