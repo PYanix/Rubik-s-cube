@@ -1,0 +1,257 @@
+from copy import deepcopy
+
+class Algorithms:
+    def pif_paf_right(self, cube_ui, cube_model):  # правый пифпаф
+        cube_model.rotate_R()
+        cube_model.rotate_U()
+        cube_model.rotate_R_streak()
+        cube_model.rotate_U_streak()
+
+        cube_ui.rotate_side('RIGHT', False)
+        cube_ui.rotate_side('UP', False)
+        cube_ui.rotate_side('RIGHT', True)
+        cube_ui.rotate_side('UP', True)
+
+    def pif_paf_left(self, cube_ui, cube_model):  # левый пифпаф
+        cube_model.rotate_F_streak()
+        cube_model.rotate_U_streak()
+        cube_model.rotate_F()
+        cube_model.rotate_U()
+
+        cube_ui.rotate_side('FACE', True)
+        cube_ui.rotate_side('UP', True)
+        cube_ui.rotate_side('FACE', False)
+        cube_ui.rotate_side('UP', False)
+
+    def F1L(self, cube_model, cube_ui, cube_solved):  # сборка первого слоя
+        print('Before f1l')
+        cube_model.show_cube()
+
+        z0 = -1
+        x0, y0 = 1, 1
+        for _ in range(4):
+            print(_)
+            colors = cube_model.get_colors(x0, y0, z0)
+            solved_colors = cube_solved.get_colors(x0, y0, z0)
+            if set(colors.values()) == set(solved_colors.values()) and colors != solved_colors:
+                # кубик стоит на месте, но цвета необходимо перевернуть
+                print('кубик стоит на месте, но цвета необходимо перевернуть')
+                if 'D' in colors['F']:
+                    for _ in range(2):
+                        self.pif_paf_left(cube_ui=cube_ui, cube_model=cube_model)
+                else:
+                    for _ in range(2):
+                        self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+
+            elif set(colors.values()) != set(solved_colors.values()):
+                print('цвета не совпали')
+                # найти нужный кубик:
+                x1, y1, z1, = 0, 0, 0
+                for x in (-1, 1):
+                    for y in (-1, 1):
+                        for z in (-1, 1):
+                            if set(cube_model.get_colors(x, y, z).values()) == set(solved_colors.values()):
+                                x1, y1, z1, = x, y, z
+                print('нужный кубик:', (x1, y1, z1))
+                # перевести нужный кубик на верхнюю грань над нужным положением:
+                if z1 == -1:
+                    if (x1, y1) == (1, -1):
+                        cube_model.rotate_cube_U_streak()
+                        cube_ui.rotate_cube('UP', True)
+                        self.pif_paf_left(cube_ui=cube_ui, cube_model=cube_model)
+                        cube_model.rotate_cube_U()
+                        cube_ui.rotate_cube('UP', False)
+                    elif (x1, y1) == (-1, -1):
+                        for _ in range(2):
+                            cube_model.rotate_cube_U_streak()
+                        for _ in range(2):
+                            cube_ui.rotate_cube('UP', True)
+                        self.pif_paf_left(cube_ui=cube_ui, cube_model=cube_model)
+                        for _ in range(2):
+                            cube_model.rotate_cube_U()
+                        for _ in range(2):
+                            cube_ui.rotate_cube('UP', False)
+                    else:
+                        cube_model.rotate_cube_U()
+                        cube_ui.rotate_cube('UP', False)
+                        self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+                        cube_model.rotate_cube_U_streak()
+                        cube_ui.rotate_cube('UP', True)
+                # Поставить кубик над нужным местом
+                if (x1, y1) == (1, -1):
+                    cube_model.rotate_U_streak()
+                    cube_ui.rotate_side('UP', True)
+                elif (x1, y1) == (-1, -1):
+                    for _ in range(2):
+                        cube_model.rotate_U_streak()
+                    for _ in range(2):
+                        cube_ui.rotate_side('UP', True)
+                elif (x1, y1) == (-1, 1):
+                    cube_model.rotate_U()
+                    cube_ui.rotate_side('UP', False)
+                #cube_model.show_cube()
+                # поставить кубик на место:
+                print(cube_model.get_colors(x0, y0, 1), cube_solved.get_colors(x0, y0, -1))
+                if cube_model.get_colors(x0, y0, 1)['F'] == cube_solved.get_colors(x0, y0, -1)['D']:
+                    print(1)
+                    self.pif_paf_left(cube_ui=cube_ui, cube_model=cube_model)
+                elif cube_model.get_colors(x0, y0, 1)['U'] == cube_solved.get_colors(x0, y0, -1)['D']:
+                    for _ in range(3):
+                        self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+                else:
+                    self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+            else:
+                print('ничего')
+            flag_continue = False
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if cube_model.get_colors(x, y, -1) != cube_solved.get_colors(x, y, -1):
+                        flag_continue = True
+                        print((x, y, -1), cube_model.get_colors(x, y, -1), cube_solved.get_colors(x, y, -1))
+                        break
+            if not flag_continue:
+                break
+
+            cube_model.rotate_cube_U()
+            cube_solved.rotate_cube_U()
+            print('после поворота')
+            cube_model.show_cube()
+
+            cube_ui.rotate_cube('UP', False)
+
+    def F2L(self, cube_model, cube_ui, cube_solved):  # сборка первых двух слоев
+        def F2L_right():
+            cube_model.rotate_U_streak()
+            cube_model.rotate_F_streak()
+            cube_model.rotate_R()
+            cube_model.rotate_U()
+            cube_model.rotate_R_streak()
+            cube_model.rotate_U_streak()
+            cube_model.rotate_R_streak()
+            cube_model.rotate_F()
+            cube_model.rotate_R()
+
+            cube_ui.rotate_side('UP', True)
+            cube_ui.rotate_side('FACE', True)
+            cube_ui.rotate_side('RIGHT', False)
+            cube_ui.rotate_side('UP', False)
+            cube_ui.rotate_side('RIGHT', True)
+            cube_ui.rotate_side('UP', True)
+            cube_ui.rotate_side('RIGHT', True)
+            cube_ui.rotate_side('FACE', False)
+            cube_ui.rotate_side('RIGHT', False)
+
+        def F2L_left():
+            cube_model.rotate_U()
+            cube_model.rotate_R()
+            cube_model.rotate_U_streak()
+            cube_model.rotate_R_streak()
+            cube_model.rotate_F()
+            cube_model.rotate_R_streak()
+            cube_model.rotate_F_streak()
+            cube_model.rotate_R()
+
+            cube_ui.rotate_side('UP', False)
+            cube_ui.rotate_side('RIGHT', False)
+            cube_ui.rotate_side('UP', True)
+            cube_ui.rotate_side('RIGHT', True)
+            cube_ui.rotate_side('FACE', False)
+            cube_ui.rotate_side('RIGHT', True)
+            cube_ui.rotate_side('FACE', True)
+            cube_ui.rotate_side('RIGHT', False)
+
+        print('Before f2l')
+
+        for p in range(4):
+            x, y, z = 1, 1, 1
+            x0, y0, z0 = 1, 1, 0
+            flag = True
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    for z in range(0, 2):
+                        s = str(x)+str(y)+str(z)
+                        if s.count('0') != 1:
+                            continue
+                        if set(cube_model.get_colors(x, y, z).values()) != set(cube_solved.get_colors(x0, y0, z0).values()):
+                            continue
+
+                        if (x0, y0, z0) == (x, y, z):  # если кубик стоит на месте
+                            if cube_model.get_colors(x, y, z) == cube_solved.get_colors(x0, y0, z0):  # цвета верные
+                                #flag = False
+                                #break
+                                pass
+                            else: #цвета надо переставить
+                                F2L_right()
+                                cube_model.rotate_U()
+                                cube_ui.rotate_side('UP', False)
+                                F2L_left()
+                        else:  # если кубик надо переставить на нужное место
+                            if z == 0:
+                                F2L_right()  # вывели на верхнюю грань, если кубик там не находился
+
+                            while (cube_model.get_colors(0, 1, 1)['R'] != cube_solved.get_colors(x0, y0, z0)['R']
+                                   and cube_model.get_colors(1, 0, 1)['F'] != cube_solved.get_colors(x0, y0, z0)['F']):
+                                cube_model.rotate_U()
+                                cube_ui.rotate_side('UP', False)
+                            if cube_model.get_colors(0, 1, 1)['R'] == cube_solved.get_colors(x0, y0, z0)['R']:
+                                F2L_right()
+                            else:
+                                F2L_left()
+                    if flag == False:
+                        break
+                if flag == False:
+                    break
+            cube_model.rotate_cube_U()
+            cube_solved.rotate_cube_U()
+            cube_ui.rotate_cube('UP', False)
+    
+    def up_cross_colors(self, cube_model, cube_ui, cube_solved):
+        up_colors = deepcopy(cube_model.U_colors)
+        for i in range(len(up_colors)):
+            for j in range(len(up_colors[i])):
+                for p in range(10):
+                    up_colors[i][j] = up_colors[i][j].replace(str(p), '')
+
+        def horizontal_line():
+            cube_model.rotate_F()
+            cube_ui.rotate_side('FACE', False)
+            self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+            cube_model.rotate_F_streak()
+            cube_ui.rotate_side('FACE', True)
+        
+        def corner():
+            cube_model.rotate_F()
+            cube_ui.rotate_side('FACE', False)
+            for _ in range(2):
+                self.pif_paf_right(cube_ui=cube_ui, cube_model=cube_model)
+            cube_model.rotate_F_streak()
+            cube_ui.rotate_side('FACE', True)
+        
+        def point():
+            corner()
+            cube_model.rotate_U()
+            cube_ui.rotate_side('UP', False)
+            horizontal_line()
+
+        solved_up_color = cube_model.get_colors(0, 0, 1)['U'].replace('5', '')
+        if up_colors[0][1] != solved_up_color and up_colors[1][0] != solved_up_color and up_colors[1][2] != solved_up_color and up_colors[2][1] != solved_up_color:
+            point()
+        elif up_colors[0][1] == solved_up_color and up_colors[2][1] == solved_up_color and up_colors[1][0] != solved_up_color and up_colors[1][2] != solved_up_color:
+            cube_model.rotate_U()
+            cube_ui.rotate_side('UP', False)
+            horizontal_line()
+        elif up_colors[0][1] != solved_up_color and up_colors[2][1] != solved_up_color and up_colors[1][0] == solved_up_color and up_colors[1][2] == solved_up_color:
+            horizontal_line()
+        else:
+            if up_colors[0][1] == solved_up_color and up_colors[1][2] == solved_up_color:
+                cube_model.rotate_U_streak()
+                cube_ui.rotate_side('UP', True)
+            elif up_colors[2][1] == solved_up_color and up_colors[1][0] == solved_up_color:
+                cube_model.rotate_U()
+                cube_ui.rotate_side('UP', False)
+            elif up_colors[2][1] == solved_up_color and up_colors[1][2] == solved_up_color:
+                cube_model.rotate_U()
+                cube_model.rotate_U()
+                cube_ui.rotate_side('UP', False)
+                cube_ui.rotate_side('UP', False)
+            corner()
