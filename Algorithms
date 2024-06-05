@@ -937,3 +937,7 @@ class Algorithms:
                 cube_ui.rotate_side('DOWN', False)
             cube_model.rotate_R()
             cube_ui.rotate_side('RIGHT', False)
+        
+        # восстановить ориентацию собранного кубика:
+        while cube_model.get_colors(1, 0, 0) != cube_solved.get_colors(1, 0, 0):
+            cube_solved.rotate_cube_U()
