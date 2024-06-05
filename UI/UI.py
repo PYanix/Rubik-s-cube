@@ -1,6 +1,7 @@
 from ursina import *
 
 from cube_model import Cube
+from Algoritms import Algorithms
 
 
 def create_sensor(name, pos, scale):
@@ -13,89 +14,6 @@ def create_sensor(name, pos, scale):
         collider='box',
         visible=False
     )
-
-
-class Algorithms:
-    def pif_paf_right(self, cube_model, cube_ui):  # правый пифпаф
-        cube_ui.rotate_side('RIGHT', False)
-        cube_model.rotate_R()
-        cube_ui.rotate_side('UP', False)
-        cube_model.rotate_U()
-        cube_ui.rotate_side('RIGHT', True)
-        cube_model.rotate_R_streak()
-        cube_ui.rotate_side('UP', True)
-        cube_model.rotate_U_streak()
-
-    def pif_paf_left(self, cube_model, cube_ui):  # левый пифпаф
-        cube_model.rotate_L_streak()
-        cube_ui.rotate_side('LEFT', True)
-        cube_model.rotate_U_streak()
-        cube_ui.rotate_side('UP', True)
-        cube_model.rotate_L()
-        cube_ui.rotate_side('LEFT', False)
-        cube_model.rotate_U()
-        cube_ui.rotate_side('UP', False)
-
-    def F1L(self, cube_model, cube_ui, cube_solved):  # сборка первого слоя
-        z0 = -1
-        x0, y0 = 1, 1
-        for _ in range(4):
-            colors = cube_model.get_colors(x0, y0, z0)
-            solved_colors = cube_solved.get_colors(x0, y0, z0)
-
-            if set(colors.values()) == set(
-                    solved_colors.values()):  # кубик стоит на месте, но цвета необходимо перевернуть
-                while cube_model.get_colors(x0, y0, z0) != solved_colors:
-                    self.pif_paf_right(cube_model, cube_ui)
-            elif set(colors.values()) != set(solved_colors.values()):
-
-                # найти нужный кубик:
-                x1, y1, z1, = 0, 0, 0
-                for x in (-1, 1):
-                    for y in (-1, 1):
-                        for z in (-1, 1):
-                            if set(cube_model.get_colors(x, y, z).values()) == set(solved_colors.values()):
-                                x1, y1, z1, = x, y, z
-
-                # перевести нужный кубик на верхнюю грань над нужным положением:
-                if z1 == -1:
-                    if (x1, y1) == (1, -1):
-                        self.pif_paf_left(cube_model, cube_ui)
-                        cube_model.rotate_U_streak()
-                        cube_ui.rotate_side('UP', True)
-                    elif (x1, y1) == (-1, -1):
-                        cube_model.rotate_cube_U_streak()
-                        cube_ui.rotate_cube('UP', True)
-                        self.pif_paf_left(cube_model, cube_ui)
-                        cube_model.rotate_cube_U()
-                        cube_ui.rotate_cube('UP', False)
-                        # функция поворота куба в ui
-                        for _ in range(2):
-                            cube_model.rotate_U()
-                            cube_ui.rotate_side('UP', False)
-                    else:
-                        cube_model.rotate_cube_U()
-                        cube_ui.rotate_cube('UP', False)
-                        self.pif_paf_right(cube_model, cube_ui)
-                        cube_model.rotate_cube_U_streak()
-                        cube_ui.rotate_cube('UP', True)
-                        cube_model.rotate_U()
-                        cube_ui.rotate_side('UP', False)
-                # поставить кубик на место:
-                if cube_model.get_colors(x0, y0, 1)['R'] == cube_model.get_colors(0, 0, -1)['D']:
-                    self.pif_paf_right(cube_model, cube_ui)
-                elif cube_model.get_colors(x0, y0, 1)['U'] == cube_model.get_colors(0, 0, -1)['D']:
-                    for _ in range(3):
-                        self.pif_paf_right(cube_model, cube_ui)
-                else:
-                    cube_model.rotate_cube_U()
-                    cube_ui.rotate_cube('UP', False)
-                    self.pif_paf_left(cube_model, cube_ui)
-                    cube_model.rotate_cube_U_streak()  # важно повернуть собранный куб тоже
-                    cube_ui.rotate_cube('UP', True)
-            cube_model.rotate_cube_U()
-            cube_ui.rotate_cube('UP', False)
-            cube_solved.rotate_cube_U()
 
 
 class RubiksCube:
@@ -153,40 +71,22 @@ class RubiksCube:
         if self.cube_instance:
             if side_name == 'LEFT':
                 if not streak:
-                    self.cube_instance.rotate_L()
                     angel = -90
-                else:
-                    self.cube_instance.rotate_L_streak()
             elif side_name == 'RIGHT':
-                if not streak:
-                    self.cube_instance.rotate_R()
-                else:
-                    self.cube_instance.rotate_R_streak()
+                if streak:
                     angel = -90
             elif side_name == 'UP':
-                if not streak:
-                    self.cube_instance.rotate_U()
-                else:
-                    self.cube_instance.rotate_U_streak()
+                if streak:
                     angel = -90
             elif side_name == 'DOWN':
                 if not streak:
-                    self.cube_instance.rotate_D()
                     angel = -90
-                else:
-                    self.cube_instance.rotate_D_streak()
             elif side_name == 'FACE':
-                if not streak:
-                    self.cube_instance.rotate_F()
-                else:
-                    self.cube_instance.rotate_F_streak()
+                if streak:
                     angel = -90
             elif side_name == 'BACK':
                 if not streak:
-                    self.cube_instance.rotate_B()
                     angel = -90
-                else:
-                    self.cube_instance.rotate_B_streak()
 
         self.action_flag = False
 
@@ -217,12 +117,7 @@ class RubiksCube:
                     pass
             elif side_name == 'UP':
                 rotation_axis = 'y'
-                if not streak:
-                    self.cube_instance.rotate_cube_U()
-                    self.cube_solved.rotate_cube_U()
-                else:
-                    self.cube_instance.rotate_cube_U_streak()
-                    self.cube_solved.rotate_cube_U_streak()
+                if streak:
                     angel = -90
             elif side_name == 'FACE':
                 rotation_axis = 'z'
@@ -264,57 +159,12 @@ class RubiksCube:
                 self.rotate_cube(next_action[0], next_action[1])
 
 
-class InputHandler(Entity):
-    KEYS = ['r', 'l', 'd', 'u', 'f', 'b', 't', 'i', ';', 'g', 's', 'n', 'y']
-
-    def __init__(self, cube: RubiksCube):
-        super().__init__()
-        self.cube = cube
-
-    def input(self, key):
-        if key in self.KEYS and self.cube.action_mode and self.cube.action_flag:
-            for info in mouse.collisions:
-                side_name = info.entity.name
-                if key == 'mouse1' and side_name in 'LEFT RIGHT FACE BACK':
-                    self.cube.rotate_side(side_name, False)
-                    break
-                elif key == 'mouse3' and side_name in 'UP DOWN':
-                    self.cube.rotate_side(side_name, False)
-                    break
-                elif key == 'r':
-                    self.cube.rotate_side('RIGHT', False)
-                elif key == 't':
-                    self.cube.rotate_side('RIGHT', True)
-                elif key == 'l':
-                    self.cube.rotate_side('LEFT', False)
-                elif key == ';':
-                    self.cube.rotate_side('LEFT', True)
-                elif key == 'u':
-                    self.cube.rotate_side('UP', False)
-                elif key == 'i':
-                    self.cube.rotate_side('UP', True)
-                elif key == 'd':
-                    self.cube.rotate_side('DOWN', False)
-                elif key == 's':
-                    self.cube.rotate_side('DOWN', True)
-                elif key == 'b':
-                    self.cube.rotate_side('BACK', False)
-                elif key == 'n':
-                    self.cube.rotate_side('BACK', True)
-                elif key == 'f':
-                    self.cube.rotate_side('FACE', False)
-                elif key == 'g':
-                    self.cube.rotate_side('FACE', True)
-                elif key == 'y':
-                    self.cube.rotate_cube('UP', False)
-
-
 class Game:
     def __init__(self):
         self.app = Ursina()
 
         window.fullscreen = True
-        EditorCamera(rotation=(30, -20, 0))
+        EditorCamera(rotation=(30, -20, 0), zoom_speed=0, move_speed=0)
 
         Entity(model='sphere', scale=1000, texture='background_grey', double_sided=True)
         self.model, self.texture = 'custom_cube', 'rubik_texture'
@@ -327,21 +177,60 @@ class Game:
         self.DOWN_sensor = create_sensor(name='DOWN', pos=(0, -0.99, 0), scale=(3, 1, 3))
 
         self.cube = RubiksCube()
-        self.input_handler = InputHandler(self.cube)
 
         self.solve_button = Button(text='Собрать кубик', color=color.azure, position=(0, 0.4), scale=(0.5, 0.1))
         self.solve_button.on_click = self.solve_cube
 
-        self.mode_button = Button(text='Сменить режим', color=color.azure, position=(0, -0.4), scale=(0.5, 0.1))
-        self.mode_button.on_click = self.cube.change_game_mode
+        '''self.mode_button = Button(text='Сменить режим', color=color.azure, position=(0, -0.4), scale=(0.5, 0.1))
+        self.mode_button.on_click = self.cube.change_game_mode'''
 
         # управление
         self.R_button = Button(text='R', color=color.azure, position=(0.4, 0.4), scale=(0.1, 0.1))
-        self.R_button.on_click = lambda: self.cube.rotate_side('RIGHT', False)
+        self.R_button.on_click = lambda: [self.cube.rotate_side('RIGHT', False),
+                                          self.cube.cube_instance.rotate_R()] # if self.cube.action_mode and self.cube.action_flag else None
+
+        self.R_streak_button = Button(text="R'", color=color.azure, position=(0.6, 0.4), scale=(0.1, 0.1))
+        self.R_streak_button.on_click = lambda: [self.cube.rotate_side('RIGHT', True), self.cube.cube_instance.rotate_R_streak()]
+
+        self.L_button = Button(text='L', color=color.azure, position=(0.4, 0.25), scale=(0.1, 0.1))
+        self.L_button.on_click = lambda: [self.cube.rotate_side('LEFT', False), self.cube.cube_instance.rotate_L()]
+
+        self.L_streak_button = Button(text="L'", color=color.azure, position=(0.6, 0.25), scale=(0.1, 0.1))
+        self.L_streak_button.on_click = lambda: [self.cube.rotate_side('LEFT', True), self.cube.cube_instance.rotate_L_streak()]
+
+        self.F_button = Button(text='F', color=color.azure, position=(0.4, 0.1), scale=(0.1, 0.1))
+        self.F_button.on_click = lambda: [self.cube.rotate_side('FACE', False), self.cube.cube_instance.rotate_F()]
+
+        self.F_streak_button = Button(text="F'", color=color.azure, position=(0.6, 0.1), scale=(0.1, 0.1))
+        self.F_streak_button.on_click = lambda: [self.cube.rotate_side('FACE', True), self.cube.cube_instance.rotate_F_streak()]
+
+        self.U_button = Button(text='U', color=color.azure, position=(0.4, -0.05), scale=(0.1, 0.1))
+        self.U_button.on_click = lambda: [self.cube.rotate_side('UP', False), self.cube.cube_instance.rotate_U()]
+
+        self.U_streak_button = Button(text="U'", color=color.azure, position=(0.6, -0.05), scale=(0.1, 0.1))
+        self.U_streak_button.on_click = lambda: [self.cube.rotate_side('UP', True), self.cube.cube_instance.rotate_U_streak()]
+
+        self.B_button = Button(text='B', color=color.azure, position=(0.4, -0.2), scale=(0.1, 0.1))
+        self.B_button.on_click = lambda: [self.cube.rotate_side('BACK', False), self.cube.cube_instance.rotate_B()]
+
+        self.B_streak_button = Button(text="B'", color=color.azure, position=(0.6, -0.2), scale=(0.1, 0.1))
+        self.B_streak_button.on_click = lambda: [self.cube.rotate_side('BACK', True), self.cube.cube_instance.rotate_B_streak()]
+
+        self.D_button = Button(text='D', color=color.azure, position=(0.4, -0.35), scale=(0.1, 0.1))
+        self.D_button.on_click = lambda: [self.cube.rotate_side('DOWN', False), self.cube.cube_instance.rotate_D()]
+
+        self.D_streak_button = Button(text="D'", color=color.azure, position=(0.6, -0.35), scale=(0.1, 0.1))
+        self.D_streak_button.on_click = lambda: [self.cube.rotate_side('DOWN', True), self.cube.cube_instance.rotate_D_streak()]
+
 
     def solve_cube(self):
         a = Algorithms()
-        a.pif_paf_right(cube_model=self.cube.cube_instance, cube_ui=self.cube)  # , cube_solved=self.cube.cube_solved)
+        a.low_cross(cube_model=self.cube.cube_instance, cube_ui=self.cube, cube_solved=self.cube.cube_solved)
+        a.F1L(cube_model=self.cube.cube_instance, cube_ui=self.cube, cube_solved=self.cube.cube_solved)
+        a.F2L(cube_model=self.cube.cube_instance, cube_ui=self.cube, cube_solved=self.cube.cube_solved)
+        a.up_cross_colors(cube_model=self.cube.cube_instance, cube_ui=self.cube, cube_solved=self.cube.cube_solved)
+        a.final(cube_model=self.cube.cube_instance, cube_ui=self.cube, cube_solved=self.cube.cube_solved)
+
 
     def run(self):
         self.app.run()
