@@ -4,17 +4,6 @@ from cube_model import Cube
 from Algoritms import Algorithms
 
 
-def create_sensor(name, pos, scale):
-    return Entity(
-        name=name,
-        position=pos,
-        model='cube',
-        color=color.dark_gray,
-        scale=scale,
-        collider='box',
-        visible=False
-    )
-
 
 class RubiksCube:
     def __init__(self, cube_model='custom_cube', rubik_texture='rubik_texture'):
@@ -168,13 +157,6 @@ class Game:
 
         Entity(model='sphere', scale=1000, texture='background_grey', double_sided=True)
         self.model, self.texture = 'custom_cube', 'rubik_texture'
-
-        self.LEFT_sensor = create_sensor(name='LEFT', pos=(-0.99, 0, 0), scale=(1, 3, 3))
-        self.FACE_sensor = create_sensor(name='FACE', pos=(0, 0, -0.99), scale=(3, 3, 1))
-        self.BACK_sensor = create_sensor(name='BACK', pos=(0, 0, 0.99), scale=(3, 3, 1))
-        self.RIGHT_sensor = create_sensor(name='RIGHT', pos=(0.99, 0, 0), scale=(1, 3, 3))
-        self.UP_sensor = create_sensor(name='UP', pos=(0, 0.99, 0), scale=(3, 1, 3))
-        self.DOWN_sensor = create_sensor(name='DOWN', pos=(0, -0.99, 0), scale=(3, 1, 3))
 
         self.cube = RubiksCube()
 
